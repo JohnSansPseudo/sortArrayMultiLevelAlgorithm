@@ -1,3 +1,143 @@
+<?php
+
+$users = [
+    ['name' => 'Alice', 'age' => 30],
+    ['name' => 'Bob', 'age' => 25],
+    ['name' => 'Charlie', 'age' => 35],
+];
+
+
+$users2 = [
+    ['data' => ['name' => 'Alice', 'age' => 30]],
+    ['data' => ['name' => 'Bob', 'age' => 25]],
+    ['data' => ['name' => 'Charlie', 'age' => 35]],
+];
+
+
+$aFinalArray = [];
+$p = recursifArray2($users, $aFinalArray, 'age');
+echo '  recursifArray2 test : <br/>';
+dbr($p);
+
+//Fonction récursive pour les tableaux
+function recursifArray2(array $aArray, &$aFinalArray, $sCriteria) {
+    foreach ($aArray as $k => $val) {
+        if($k === $sCriteria)
+        {
+            $aFinalArray[$val] = $aArray;
+        }
+    }
+
+    foreach($aArray as $k => $val)
+    {
+        //echo $k . ' ';
+        if (is_array($val)) recursifArray2($val, $aFinalArray, $sCriteria);
+    }
+    return sortArrayByIntKeyAsc($aFinalArray);
+}
+
+
+
+
+//FONCTION de tri pour un tableau connu à l'avance
+
+//Test
+$a = customSort($users, ['age'=>'asc']);
+echo 'customSort test : ';
+dbr($a);
+
+//Todo prendre en compte l'ordre de tri
+
+/*
+ * @Param $aData array
+ * @param $aCriteria array
+ */
+function customSort(array $aData, $aCriteria)
+{
+    //La fonction doit accepter en entrée un tableau multidimentionnel => oui => $aData
+    //La fonction doit pouvoir prendre un ou plusieurs critères de tri => oui  => $aCriteria
+    //Pour chaque critère il faut pouvoir définir si le tri doit être ascendant ou descendant =>
+        //Le tableau $aCriteria doit être composé de la façon suivant : [$sCriteria1 => 'asc', $sCriteria2 => 'asc']
+    //TODO Le tri doit se faire à tous les niveaux du tableau pour chaque critère => certainement faire du récursif
+    //TODO décomposer l'algorithme en plusieurs parties ou fonctions
+    //La fonction doit renvoyer un tableau avec les données triés comme demandé => Oui => voir le return de la fonction
+    //TODO faire des fonctions de test pour test avec différents jeux de données
+    $aFinalArray = [];
+
+    //Boucle sur les criteres en 1er
+    foreach($aCriteria as $sCritere => $valCritere)
+    {
+        foreach($aData as $kData => $aSubData)
+        {
+            foreach($aSubData as $k => $val)
+            {
+                if($k === $sCritere)
+                {
+                    $aFinalArray[$val] = $aSubData;
+                }
+            }
+            $aFinalArray = sortArrayByIntKeyAsc($aFinalArray);//il ne faudrait pas l'exécuter à chaque fois...
+        }
+    }
+    return $aFinalArray;
+}
+
+
+
+//Fonction récursive type pour les tableaux
+function recursifArray(array $aArray) {
+    foreach ($aArray as $k => $val) {
+        if (is_array($val)) {
+
+            recursifArray($val);
+        } else {
+
+        }
+    }
+}
+
+
+
+
+//TRI d'un tableau par critère entier dans l'ordre
+function sortArrayByIntKeyAsc(array $aArray)
+{
+    $aData = [];
+
+    //Création d'un tableau de clés qui permet d'avoir les clés dans l'ordre
+    $aKey = array_keys($aArray);
+    $iMax = count($aKey) - 1;
+    for($i=1; $i < $iMax; $i++){
+
+        //Si la clé courante est inférieure à la précédente
+        if($aKey[$i] < $aKey[$i-1]){
+            //On doit inverser les valeurs
+            $valKey = $aKey[$i-1];
+            $aKey[$i-1] = $aKey[$i];
+            $aKey[$i] = $valKey;
+        }
+    }
+
+    foreach($aKey as $k)
+    {
+        $aData[$k] = $aArray[$k];
+    }
+    return $aData;
+}
+//TEST
+$a = [5 => 5, 8 => 8, 10 => 10, 12 => 12];
+$c = sortArrayByIntKeyAsc($a);
+//dbr($c);
+
+
+
+
+
+
+
+
+?>
+
 <!DOCTYPE html>
 <html>
 
@@ -57,12 +197,20 @@ $users = [
                     <li>Clarté du code et commentaires appropriés pour expliquer la logique de l'algorithme.</li>
                 </ul>
             </div>
-            <hr>
-            <div class="col-md-12 text-center">
-                <img class="img-fluid" src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExaDR3ZDZ0a285M2dxanNyOXdmMTNrdXBnb2VsYWtxcTBqNXU1a254ZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/BpGWitbFZflfSUYuZ9/giphy.gif" alt="Let's do this!" />
-            </div>
+
         </div>
     </div>
 </body>
 
 </html>
+<?php
+
+//TOOLS
+function dbr($var) {
+    echo '<pre>'.print_r($var, true).'</pre>';
+}
+
+function dbrdie($var) {
+    dbr($var);
+    die('end of dbrdie function');
+}
