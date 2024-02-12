@@ -4,49 +4,180 @@ $users = [
     ['name' => 'Alice', 'age' => 30],
     ['name' => 'Bob', 'age' => 25],
     ['name' => 'Charlie', 'age' => 35],
+    ['name' => 'Flo', 'age' => 40],
 ];
 
 
 $users2 = [
-    ['data' => ['name' => 'Alice', 'age' => 30]],
-    ['data' => ['name' => 'Bob', 'age' => 25]],
-    ['data' => ['name' => 'Charlie', 'age' => 35]],
+    ['profession' => 'fleuriste', 'data' => [ 'age' => 30, 'name' => 'Gégé', 'enfant' => 2]],
+    ['profession' => 'développeur','data' => ['age' => 25, 'name' => 'Charlie', 'enfant' => 4]],
+    ['profession' => 'Boulanger', 'data' => ['age' => 40, 'name' => 'Flo', 'enfant' => 1]],
+    ['profession' => 'agriculteur', 'data' => ['age' => 25, 'name' => 'Bob', 'enfant' => 3]],
+    ['profession' => 'Maçon', 'data' => ['age' => 25, 'name' => 'Alice', 'enfant' => 5]],
+
 ];
 
 
-$aFinalArray = [];
-$p = recursifArray2($users, $aFinalArray, 'age');
-echo '  recursifArray2 test : <br/>';
-dbr($p);
+$a = customSort($users, ['age'=>'asc']); //FONCTION de tri pour un tableau connu à l'avance
+$d = customSort2($users2, ['age' => 'desc']);
+//dbrdie($d);
+//TEST
+$a = [5 => 5, 8 => 8, 10 => 10, 12 => 12];
+$c = sortArrayByIntKeyAsc($a);
 
-//Fonction récursive pour les tableaux
-function recursifArray2(array $aArray, &$aFinalArray, $sCriteria) {
-    foreach ($aArray as $k => $val) {
-        if($k === $sCriteria)
+$e = customSort3($users2, ['age' => 'desc', 'name' => 'asc']);
+dbrdie($e);
+
+
+function customSort3($aData, $aCriteria)
+{
+    $aFinal = [];
+    foreach($aData as $k => $v)
+    {
+        $aKey = [];
+        $b = recursifArray3($v, $aCriteria, $aKey);
+        if($b !== null) $aFinal[][$b] = $v;
+    }
+    $aFinal = sortArrayByIntKey3($aFinal, $aCriteria);
+    return $aFinal;
+}
+
+
+function sortArrayByIntKey3(array $aArray, $aCriteria)
+{
+    //dbr($aArray);
+    $aCriteria = array_values($aCriteria);
+    //Création d'un tableau de clés qui permet d'avoir les clés dans l'ordre
+    $bWitness = true;
+    while($bWitness === true)
+    {
+        $bWitness = false;
+        foreach($aArray as $kLevel1 => $valLevel1)
         {
-            $aFinalArray[$val] = $aArray;
+            if($kLevel1 === 0) continue;
+            $aKeys = array_keys($aArray[$kLevel1 - 1]);
+            $aKey = $aKeys[0];
+
+            $a = explode('#', $aKeys[0]);
+            dbr($a);
+
+            $bKeys = array_keys($aArray[$kLevel1]);
+            $bKey = $bKeys[0];
+            $valLevel2 = $aArray[$kLevel1][$bKey];
+
+
+            if($bKey === $aKey) continue;//if the keys are equal so they are already in order we can skip
+            $b = explode('#', $bKey);
+            dbr($b);
+            foreach($aCriteria as $i => $sOrder)
+            {
+                $valACriteria = $a[$i];
+                $valBCriteria = $b[$i];
+                echo '$a = ' . $valACriteria . '<br/>';
+                echo '$b = ' . $valBCriteria . '<br/>';
+                echo '$sOrder = ' . $sOrder . '<br/>';
+                //if($i > 0) continue;
+
+                if($valBCriteria === $valACriteria)
+                {
+                    echo 'continue equal<br/>';
+                    continue;
+                }
+                else if($sOrder === 'desc') {
+                    echo 'desc<br/>';
+                    if($valBCriteria > $valACriteria){
+                        $bWitness = true;
+                        echo 'sort<br/>';
+                        $valueDown = $aArray[$kLevel1-1][$aKey];
+                        $valueUp = $valLevel2;
+
+                        unset($aArray[$kLevel1-1][$aKey]);
+                        unset($aArray[$kLevel1][$bKey]);
+
+                        //Values switch
+                        $aArray[$kLevel1-1][$bKey] = $valueUp;
+                        $aArray[$kLevel1][$aKey] = $valueDown;
+                    }
+                    break;
+                }
+                else if($sOrder === 'asc'){
+                    echo 'asc<br/>';
+                    if($valBCriteria < $valACriteria) {
+                        $bWitness = true;
+                        echo 'sort<br/>';
+                        $valueDown = $valLevel2;
+                        $valueUp = $aArray[$kLevel1 - 1][$aKey];
+
+                        unset($aArray[$kLevel1 - 1][$aKey]);
+                        unset($aArray[$kLevel1][$bKey]);
+
+                        //Values switch
+                        $aArray[$kLevel1 - 1][$bKey] = $valueDown;
+                        $aArray[$kLevel1][$aKey] = $valueUp;
+                    }
+                    break;
+                }
+                else echo 'coconut<br/>';
+
+            }
+
         }
     }
 
-    foreach($aArray as $k => $val)
-    {
-        //echo $k . ' ';
-        if (is_array($val)) recursifArray2($val, $aFinalArray, $sCriteria);
+
+
+    /*    $aFinal = [];
+        foreach($aArray as $k => $v) {
+            foreach ($v as $kk => $vv) {
+                $aFinal[] = $vv;
+            }
+        }
+        return $aFinal;*/
+    return $aArray;
+}
+
+//Fonction récursive pour les tableaux
+function recursifArray3(array $aArray, $aCriteria, &$aKey) {
+    foreach ($aArray as $k => $val) {
+        if(array_key_exists($k, $aCriteria))
+        {
+            $aKey[] = $val;
+            if(count($aKey) === count($aCriteria)) return implode('#', $aKey);
+        }
+        else if (is_array($val)){
+            $r = recursifArray3($val, $aCriteria, $aKey);
+            if($r !== null) return $r;
+        }
     }
-    return sortArrayByIntKeyAsc($aFinalArray);
 }
 
 
 
+//Fonction récursive pour les tableaux
+function recursifArray2(array $aArray, $sCriteria) {
+    foreach ($aArray as $k => $val) {
 
-//FONCTION de tri pour un tableau connu à l'avance
+        if($k === $sCriteria) return $val;
+        else if (is_array($val)){
+            $r = recursifArray2($val, $sCriteria);
+            if($r !== null) return $r;
+        }
+    }
+}
 
-//Test
-$a = customSort($users, ['age'=>'asc']);
-echo 'customSort test : ';
-dbr($a);
-
-//Todo prendre en compte l'ordre de tri
+function customSort2($aData, $aCriteria)
+{
+    $aFinal = [];
+    foreach($aCriteria as $sCriteria => $dir)
+    {
+        foreach($aData as $k => $v)
+        {
+            $b = recursifArray2($v, $sCriteria);
+            if($b !== null) $aFinal[][$b] = $v;
+        }
+    }
+    return sortArrayByIntKey($aFinal, $dir);
+}
 
 /*
  * @Param $aData array
@@ -82,8 +213,6 @@ function customSort(array $aData, $aCriteria)
     return $aFinalArray;
 }
 
-
-
 //Fonction récursive type pour les tableaux
 function recursifArray(array $aArray) {
     foreach ($aArray as $k => $val) {
@@ -96,8 +225,64 @@ function recursifArray(array $aArray) {
     }
 }
 
+function sortArrayByIntKey(array $aArray, $sOrder='asc')
+{
+    //Création d'un tableau de clés qui permet d'avoir les clés dans l'ordre
+    $b = true;
+    while($b === true)
+    {
+        $b = false;
+        foreach($aArray as $k => $v)
+        {
+            if($k === 0) continue;
+            $aKeys = array_keys($aArray[$k - 1]);
 
+            foreach($v as $kk => $vv)
+            {
+                switch($sOrder)
+                {
+                    case 'desc':
+                        if($kk > $aKeys[0]){
+                            $b = true;
+                            //On doit inverser les valeurs
+                            $valueDown = $aArray[$k-1][$aKeys[0]];
+                            $valueUp = $vv;
 
+                            unset($aArray[$k-1][$aKeys[0]]);
+                            $aArray[$k-1][$kk] = $valueUp;
+
+                            unset($aArray[$k][$kk]);
+                            $aArray[$k][$aKeys[0]] = $valueDown;
+                        }
+                        break;
+                    default:
+                        if($kk < $aKeys[0]){
+                            $b = true;
+                            //On doit inverser les valeurs
+                            $valueUp = $aArray[$k-1][$aKeys[0]];
+                            $valueDown = $vv;
+
+                            unset($aArray[$k-1][$aKeys[0]]);
+                            $aArray[$k-1][$kk] = $valueDown;
+
+                            unset($aArray[$k][$kk]);
+                            $aArray[$k][$aKeys[0]] = $valueUp;
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+/*    $aFinal = [];
+    foreach($aArray as $k => $v) {
+        foreach ($v as $kk => $vv) {
+            $aFinal[] = $vv;
+        }
+    }
+    return $aFinal;*/
+    return $aArray;
+}
 
 //TRI d'un tableau par critère entier dans l'ordre
 function sortArrayByIntKeyAsc(array $aArray)
@@ -124,10 +309,7 @@ function sortArrayByIntKeyAsc(array $aArray)
     }
     return $aData;
 }
-//TEST
-$a = [5 => 5, 8 => 8, 10 => 10, 12 => 12];
-$c = sortArrayByIntKeyAsc($a);
-//dbr($c);
+
 
 
 
