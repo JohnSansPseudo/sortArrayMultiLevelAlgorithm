@@ -1,17 +1,27 @@
 <?php
 
 $users2 = [
-    ['profession' => 'fleuriste', 'data' => [ 'age' => 30, 'name' => 'Gégé', 'enfant' => 2]],
-    ['profession' => 'développeur','data' => ['age' => 25, 'name' => 'Charlie', 'enfant' => 4]],
+    ['profession' => 'fleuriste',  'data' => [ 'age' => 30, 'name' => 'Gégé', 'enfant' => 2]],
+    ['profession' => 'développeur',  'data' => ['age' => 25, 'name' => 'Charlie', 'enfant' => 4]],
     ['profession' => 'développeur','data' => ['age' => 25, 'name' => 'Charlie', 'enfant' => 5]],
     ['profession' => 'Boulanger', 'data' => ['age' => 40, 'name' => 'Flo', 'enfant' => 1]],
     ['profession' => 'agriculteur', 'data' => ['age' => 25, 'name' => 'Bob', 'enfant' => 3]],
     ['profession' => 'Maçon', 'data' => ['age' => 25, 'name' => 'Alice', 'enfant' => 5]],
 ];
 
+$users3 = [
+    ['profession' => 'fleuriste', 'bool' => true, 'obj' => (object)array('toto' => 1, 'jojo' => 2), 'data' => [ 'age' => 30, 'name' => 'Gégé', 'enfant' => 2.2]],
+    ['profession' => 'développeur', 'bool' => false, 'obj' => (object)array('toto' => 1, 'jojo' => 2), 'data' => ['age' => 25, 'name' => 'Charlie', 'enfant' => 4.2]],
+    ['profession' => 'développeur','bool' => null, 'obj' => (object)array('toto' => 1, 'jojo' => 2), 'data' => ['age' => 25, 'name' => 'Charlie', 'enfant' => 5.2]],
+    ['profession' => 'Boulanger', 'bool' => true, 'obj' => (object)array('toto' => 1, 'jojo' => 2), 'data' => ['age' => 40, 'name' => 'Flo', 'enfant' => 1.2]],
+    ['profession' => 'agriculteur', 'bool' => true, 'obj' => (object)array('toto' => 1, 'jojo' => 2), 'data' => ['age' => 25, 'name' => 'Bob', 'enfant' => 3.2]],
+    ['profession' => 'Maçon', 'bool' => true, 'obj' => (object)array('toto' => 1, 'jojo' => 2), 'data' => ['age' => 25, 'name' => 'Alice', 'enfant' => 5.2]],
+];
+
+
 $aCriteria = ['age' => 'desc', 'name' => 'asc', 'enfant' => 'asc'];
 try {
-    $e = customSort3($users2, $aCriteria);
+    $e = customSort3($users3, $aCriteria);
     dbr($e);
 }catch(Exception $err){
     die($err->getMessage());
@@ -203,13 +213,74 @@ $users = [
 <?php
 
 //TOOLS
-function dbr($var) {
-    echo '<pre>'.print_r($var, true).'</pre>';
+/*function dbr2($var) {
+    echo '<pre>'. print_r($var, true) .'</pre>';
 }
 
-function dbrdie($var) {
+function dbrdie2($var) {
     dbr($var);
     die('end of dbrdie function');
+}*/
+
+function dbrdie($var, $sVar='')
+{
+    dbr($var, $sVar);
+    echo '<pre>------- die() fn ' . __FUNCTION__ . '()-------<br/><br/></pre>';
+    die();
+}
+function dbr($var, $sVar='')
+{
+    echo '<pre>';
+    echo '------- DEBUG START-------<br/><br/>';
+    if($sVar !== '') echo $sVar . ' => ' . PHP_EOL . PHP_EOL;
+    printRecuriveVariable($var);
+    echo '<br/><br/> ------- END OF DEBUG -------<br/><br/>';
+
+    echo '</pre>';
+}
+
+function printRecuriveVariable($var, $iIndent = 0)
+{
+    $sNull = '<b>null</b>';
+    $sFalse = '<b><i style="color:darkred;">false</i></b>';
+    $sTrue = '<b><i style="color:green">true</i></b>';
+
+    $sIndent = '    ';
+    if(is_null($var)) echo $sNull;
+    else if($var === true) echo $sTrue;
+    else if($var === false) echo $sFalse;
+    else if(is_string($var) || is_float($var) || is_int($var)) echo $var;
+    else if(is_array($var) || is_object($var)) {
+
+        if(is_array($var)) echo 'Array' . PHP_EOL;
+        if(is_object($var)) echo get_class($var) . ' Object' . PHP_EOL;
+        echo str_repeat($sIndent, $iIndent) . '(' . PHP_EOL;
+        foreach($var as $k => $v)
+        {
+            echo $sIndent;
+            echo str_repeat($sIndent, $iIndent) . '[' . $k . '] => ';
+
+            if(is_array($v) || is_object($v )){
+                $iIndent+=2;
+                printRecuriveVariable($v, $iIndent);
+                echo str_repeat($sIndent, $iIndent) . ')';
+                $iIndent-=2;
+            }
+            else if(is_null($v)) echo $sNull;
+            else if($v === true) echo $sTrue;
+            else if($v === false) echo $sFalse;
+            else if(is_string($v)) echo '"' . $v . '"';
+            else if(is_float($v) || is_int($v)) echo $v ;
+            else var_dump($v);
+            echo PHP_EOL;
+        }
+        if($iIndent === 0) echo ')' . PHP_EOL;
+
+    } else {
+        var_dump($var);
+        echo PHP_EOL;
+    }
+
 }
 
 
